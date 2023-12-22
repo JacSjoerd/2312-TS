@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "lib": [
+      "es2018"
+    ],
+    "target": "es2018",
+    "moduleResolution": "Node",
+    "outDir": "C:/Users/sjoer/AppData/Local/Screeps/scripts/127_0_0_1___21025/default",
+    "baseUrl": "src/",
+    "sourceMap": true,
+    "strict": true,
+    "experimentalDecorators": true,
+    "noImplicitReturns": true,
+    "allowSyntheticDefaultImports": true,
+    "allowUnreachableCode": false
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
