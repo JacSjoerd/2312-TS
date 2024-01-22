@@ -7,9 +7,13 @@ export class UpgraderCreep extends ControlledCreep {
 
     run() {
         var target = this.room.controller;
-        var result = this.upgradeController(target as StructureController);
-        if (result == ERR_NOT_IN_RANGE || result == ERR_NOT_ENOUGH_ENERGY) {
-            this.moveTo(target as StructureController);
+        if (target != null) {
+            if (this.memory.upgrading || this.pos.inRangeTo(target, 2)){
+                this.upgradeController(target);
+                this.memory.upgrading = true;
+            } else {
+                this.moveTo(target);
+            }
         }
     }
 }

@@ -14,6 +14,7 @@ declare global {
   interface Memory {
     uuid: number;
     log: any;
+    flagging: boolean;
   }
 
   interface CreepMemory {
@@ -25,6 +26,15 @@ declare global {
     harvesting?: boolean;
     upgrading?: boolean;
     delivering?: boolean;
+
+    // Transports
+    deliverAt?: Id<Structure | Creep> | null;
+    pickupFrom?: Id<Structure | Creep | Ruin | Tombstone | Resource> | null;
+
+    // Harvest location
+    harvestFrom?: Id<Source | Mineral> | null;
+
+    targetRoom?: String;
 
     [name: string]: any;
   }
@@ -46,19 +56,44 @@ declare global {
 export const loop = ErrorMapper.wrapLoop(() => {
   console.log(`Current game tick is ${Game.time}`);
 
-  // Automatically delete memory of missing creeps
-  for (const name in Memory.creeps) {
-    if (!(name in Game.creeps)) {
-      delete Memory.creeps[name];
+  const roomList = new Map<string, ControlledRoom>();
+  for (const roomName in Game.rooms) {
+    let room = Game.rooms[roomName];
+    if (room.controller != undefined && room.controller.my && room.controller.reservation == null) {
+      roomList.set(roomName, new ControlledRoom(room));
     }
   }
 
-  for (const roomName in Game.rooms) {
-    let room = Game.rooms[roomName];
-    if(room.controller !== undefined && room.controller.my) {
-      let myControlledRoom = new ControlledRoom(room);
-      myControlledRoom.run();
-      console.log('My room: ', myControlledRoom.name);
+  // Gather info on creeps in rooms or delete memory of missing creeps
+  for (const creepName in Memory.creeps) {
+    if (!(creepName in Game.creeps)) {
+      delete Memory.creeps[creepName];
+    } else {
+      let creep = Game.creeps[creepName];
+      let creepsRoom = roomList.get(creep.memory.room);
+      if (creepsRoom != undefined) {
+        creepsRoom.assign(creep);
+      }
     }
   }
+  // console.log(`CPU after creep instantiation: ${Game.cpu.getUsed()}`)
+
+  roomList.forEach(
+    function(room) {
+      console.log(`Running room ${room.name}`);
+      room.run();
+      // console.log(`CPU after room.run() of ${room.name}: ${Game.cpu.getUsed()}`)
+    }
+  )
+
+  if (Memory.flagging) {
+
+    Memory.flagging = false;
+  }
+
+  if(Game.shard.name == "shard3" && Game.cpu.bucket == 10000) {
+    Game.cpu.generatePixel();
+    console.log('Generated 1 pixel');
+  }
+
 });
